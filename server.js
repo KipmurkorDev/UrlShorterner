@@ -1,43 +1,20 @@
 const express = require("express");
+const path = require('path');
 const mongoose = require("mongoose");
-const  dotenv= require('dotenv')
-
-const ShortUrl = require("./Model/shortUrl");
+const dotenv = require("dotenv");
+const router=require('./Router/Router')
 const app = express();
-dotenv.config()
+dotenv.config();
 mongoose.set("strictQuery", false);
-mongoose
-  .connect(
-    process.env.DB_URL,
-    {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    }
-  )
+mongoose.connect(process.env.DB_URL, {useNewUrlParser: true,useUnifiedTopology: true})
   .then(() => console.log("MongoDB connected..."))
-  .catch((err) => console.log(err, "Hello"));
+  .catch((err) => console.log(err));
 
+app.set('views', path.join(__dirname, 'views'));
 app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: false }));
+app.use("/", router);
 
-app.post("/shortUrls", async (req, res) => {
-  await new ShortUrl({ full: req.body.fullUrl }).save();
 
-  res.redirect("/");
-});
-app.get("/", async (req, res) => {
-  const shortUrls = await ShortUrl.find();
-  res.render("index", { shortUrls: shortUrls });
-});
-app.get("/:shortUrl", async (req, res) => {
-  const shortUrl = await ShortUrl.findOne({ short: req.params.shortUrl });
-  if (shortUrl == null) return res.sendStatus(404);
-
-  shortUrl.clicks++;
-  shortUrl.save();
-
-  res.redirect(shortUrl.full);
-});
-
-const port = 3000;
+const port =process.env.PORT||3000;
 app.listen(port);
