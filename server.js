@@ -1,12 +1,14 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const  dotenv= require('dotenv')
+
 const ShortUrl = require("./Model/shortUrl");
 const app = express();
+dotenv.config()
 mongoose.set("strictQuery", false);
-
 mongoose
   .connect(
-    "mongodb+srv://kim145:kim176@cluster0.lqvz0.mongodb.net/?retryWrites=true&w=majority",
+    process.env.DB_URL,
     {
       useNewUrlParser: true,
       useUnifiedTopology: true,
@@ -19,7 +21,7 @@ app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: false }));
 
 app.post("/shortUrls", async (req, res) => {
-  await ShortUrl.create({ full: req.body.fullUrl });
+  await new ShortUrl({ full: req.body.fullUrl }).save();
 
   res.redirect("/");
 });
@@ -36,5 +38,6 @@ app.get("/:shortUrl", async (req, res) => {
 
   res.redirect(shortUrl.full);
 });
+
 const port = 3000;
 app.listen(port);
